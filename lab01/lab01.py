@@ -22,7 +22,13 @@ def captured_output():
 
 # implement this function
 def is_perfect(n):
-    pass
+    total = 0
+    for i in range(1,n):
+        if(n % i == 0):
+            total += i
+    if(total == n):
+        return True
+    return False
 
 # (3 points)
 def test1():
@@ -40,7 +46,11 @@ def test1():
 
 # implement this function
 def multiples_of_3_and_5(n):
-    pass
+    total = 0
+    for i in  range (1,n):
+        if(i % 3 == 0 or i % 5 ==0):
+            total += i
+    return total
 
 # (3 points)
 def test2():
@@ -53,7 +63,21 @@ def test2():
 # EXERCISE 3
 #################################################################################
 def integer_right_triangles(p):
-    pass
+    num = 0
+    first= 1
+    second = 0
+    third = 0
+    while(first < p):
+        second = first
+        while(second < p):
+            third = second
+            while(third < p):
+                if(first + second + third == p and (first + second > third and  second + third >= first and first + third > second) and ((first ** 2) + (second ** 2) == (third ** 2) or (second ** 2) + (third ** 2) == (first ** 2) or (first ** 2) + (third ** 2) == (second ** 2))):
+                    num +=1
+                third += 1
+            second += 1
+        first += 1
+    return num
 
 def test3():
     tc = unittest.TestCase()
@@ -67,7 +91,19 @@ def test3():
 
 # implement this function
 def gen_pattern(chars):
-    pass
+    size = len(chars)
+    fronttoback = chars 
+    backtofront = chars[::-1]
+    middle = []
+
+    for i in range(1, size+1):
+        positionnow = backtofront[0:i] + fronttoback[size-i+1:size]
+        positionnow = '.'.join(positionnow)
+        positionnow = positionnow.center(size * 4 - 3, ".")
+        middle.append(positionnow)
+        print(positionnow)
+    for i in range(2, size+1):
+        print(middle[-i])
 
 def test4():
     tc = unittest.TestCase()
