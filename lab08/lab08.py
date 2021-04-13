@@ -24,10 +24,24 @@ class Heap:
 
     def heapify(self, idx=0):
         ### BEGIN SOLUTION
+        while self._left(idx) < len(self.data):
+            b_childIdx = self._left(idx)
+            if (self._right(idx) < len(self.data)) and (self.key(self.data[self._right(idx)]) > self.key(self.data[self._left(idx)])):
+                b_childIdx = self._right(idx)
+            if self.key(self.data[idx]) > self.key(self.data[b_childIdx]):
+                break
+            else:
+                self.data[idx], self.data[b_childIdx] = self.data[b_childIdx], self.data[idx]
+            idx = b_childIdx
         ### END SOLUTION
 
     def add(self, x):
         ### BEGIN SOLUTION
+        self.data.append(x)
+        idx = len(self.data) - 1
+        while (self._parent(idx) > -1) and self.key(self.data[self._parent(idx)]) < self.key(x):
+            self.data[idx], self.data[self._parent(idx)] = self.data[self._parent(idx)], self.data[idx]
+            idx = self._parent(idx)
         ### END SOLUTION
 
     def peek(self):
@@ -130,6 +144,21 @@ def test_key_heap_5():
 ################################################################################
 def running_medians(iterable):
     ### BEGIN SOLUTION
+    minHeap = Heap()
+    maxHeap = Heap(key = lambda x: -x)
+    meds = [0] * len(iterable)
+
+    for i, x in enumerate(iterable):
+        minHeap.add(x)
+        maxHeap.add(minHeap.pop())
+        if len(maxHeap) > len(minHeap):
+            minHeap.add(maxHeap.peek())
+            maxHeap.pop() 
+        if len(minHeap) == len(maxHeap):
+            meds[i] = (minHeap.peek() + maxHeap.peek()) / 2
+        else:
+            meds[i] = minHeap.peek()
+    return meds
     ### END SOLUTION
 
 ################################################################################
@@ -174,6 +203,13 @@ def test_median_3():
 ################################################################################
 def topk(items, k, keyf):
     ### BEGIN SOLUTION
+    minHeap = Heap(keyf)  
+    retur = []
+    for i in range(len(items)): 
+        minHeap.add(items[i]) 
+    for i in range(k):  
+        retur.append(minHeap.pop())
+    return retur
     ### END SOLUTION
 
 ################################################################################
