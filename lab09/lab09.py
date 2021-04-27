@@ -1,11 +1,8 @@
-#changes
-
 from unittest import TestCase
 import random
 
 class HBStree:
     """This is an immutable binary search tree with history.
-
     Each insert and delete operation creates a new version of the tree. The data
     structure allows past versions to be accessed.
     """
@@ -53,13 +50,36 @@ class HBStree:
         KeyError, if key does not exist.
         """
         # BEGIN SOLUTION
+        if self.get_current_root():
+            temp = self.search(key, self.get_current_root())
+            if temp == -1:
+                raise KeyError
+            return temp
+        else:
+            raise KeyError
+
         # END SOLUTION
+    def search(self, key, node):
+        if node.val == key:
+            return node
+        elif node.val < key:
+            if node.right:
+                return self.search(key, node.right)
+        else:
+            if node.left:
+                return self.search(key, node.left)
+        return -1
 
     def __contains__(self, el):
         """
         Return True if el exists in the current version of the tree.
         """
         # BEGIN SOLUTION
+        try:
+            self.__getitem__(el)
+            return True
+        except KeyError:
+            return False
         # END SOLUTION
 
     def insert(self,key):
@@ -69,11 +89,138 @@ class HBStree:
         from creating a new version.
         """
         # BEGIN SOLUTION
+        temp = True
+        try:
+            self.__getitem__(key)
+        except KeyError:
+            temp = False
+        if not temp:
+            if self.num_versions() == 1:
+                self.root_versions.append(self.INode(key, None, None))
+            else:
+                temp1 = self.ins(key, self.get_current_root())
+                while temp1.val != self.get_current_root().val:
+                    temp1 = self.replacing(temp1, self.get_current_root())
+                self.root_versions.append(temp1)
         # END SOLUTION
 
+    def ins(self, key, node):
+        if key < node.val:
+            if node.left:
+                if key < node.left.val:
+                    return self.ins(key, node.left)
+                else:
+                    temp = self.INode(node.val, self.INode(key, node.left, None), node.right)
+            else:
+                temp = self.INode(node.val, self.INode(key, None, None), node.right)
+        elif key > node.val:
+            if node.right:
+                if key > node.right.val:
+                    return self.ins(key, node.right)
+                else:
+                    temp = self.INode(node.val, node.left, self.INode(key, None, node.right))
+            else:
+                temp = self.INode(node.val, node.left, self.INode(key, None, None))
+        return temp
+
+    def replacing(self, temp, node):
+        if temp.val < node.val:
+            if node.left.val > temp.val:
+                return self.replacing(temp, node.left)
+            else:
+                return self.INode(node.val, temp, node.right)
+        elif temp.val > node.val:
+            if node.right.val < temp.val:
+                return self.replacing(temp, node.right)
+            else:
+                return self.INode(node.val, node.left, temp)
+
     def delete(self,key):
-        """Delete key from the tree, creating a new version of the tree. If key does not exist in the current version of the tree, then do nothing and refrain from creating a new version."""
+        """Delete key from the tree, creating a new version of the tree.
+        If key does not exist in the current version of the tree, then do nothing
+        and refrain from creating a new version."""
         # BEGIN SOLUTION
+        temp = True
+        try:
+            loc = self.__getitem__(key)
+        except KeyError:
+            temp = False
+        if temp:
+            if loc.left and not loc.right:
+                par1 = self.parent(loc.val, self.get_current_root()) #gets node of the parent
+                if par1:
+                    if par1.left:
+                        if par1.left.val == key:
+                            temp = self.INode(par1.val, loc.left, par1.right) #makes a temp with parent features except replacing left
+                    elif par1.right:
+                        if par1.right.val == key:
+                            temp = self.INode(par1.val, par1.left, loc.left)
+                    while temp.val != self.get_current_root().val: #makes a new root node with new old ones
+                        temp = self.replacing(temp, self.get_current_root())
+                    self.root_versions.append(temp)
+                else:
+                    self.root_versions.append(loc.left)
+            elif loc.right and not loc.left:
+                par1 = self.parent(loc.val, self.get_current_root())
+                if par1:
+                    if par1.left:
+                        if par1.left.val == key:
+                            temp = self.INode(par1.val, loc.right, par1.right) #makes a temp with parent features except replacing left
+                    elif par1.right:
+                        if par1.right.val == key:
+                            temp = self.INode(par1.val, par1.left, loc.right)
+                    while temp.val != self.get_current_root().val:
+                        temp = self.replacing(temp, self.get_current_root())
+                    self.root_versions.append(temp)
+                else:
+                    self.root_versions.append(loc.right)
+            elif (not loc.left) and (not loc.right):
+                par1 = self.parent(loc.val, self.get_current_root())
+                if par1:
+                    if par1.left:
+                        if par1.left.val == key:
+                            temp = self.INode(par1.val, None, par1.right)
+                    elif par1.right:
+                        if par1.right.val == key:
+                            temp = self.INode(par1.val, par1.left, None)
+                    while temp.val != self.get_current_root().val:
+                        temp = self.replacing(temp, self.get_current_root())
+                    self.root_versions.append(temp)
+                else:
+                    self.root_versions.append(None)
+            else:
+                greatest = self.findRight(loc.left)
+                par2 = self.parent(greatest.val, loc)
+                if greatest.left:
+                    temp = self.INode(par2.val, par2.left, greatest.left)
+                else:
+                    temp = self.INode(par2.val, par2.left, None)
+                while temp.val != loc.val:
+                    temp = self.replacing(temp, self.get_current_root())
+                temp = self.INode(greatest.val, temp.left, temp.right)
+                while temp.val != self.get_current_root().val:
+                    temp = self.replacing(temp, self.get_current_root())
+                self.root_versions.append(temp)
+
+    def findRight(self, node):
+        if node.right:
+            return self.findRight(node.right)
+        else:
+            return node
+
+    def parent(self, key, node): #key is child we are looking for
+        if key < node.val: #look to the left
+            if node.left:
+                if key == node.left.val:
+                    return node
+                else:
+                    return self.parent(key, node.left)
+        elif key > node.val:
+            if node.right:
+                if key == node.right.val:
+                    return node
+                else:
+                    return self.parent(key, node.right)
         # END SOLUTION
 
     @staticmethod
@@ -145,7 +292,16 @@ class HBStree:
         if timetravel < 0 or timetravel >= len(self.root_versions):
             raise IndexError(f"valid versions for time travel are 0 to {len(self.root_versions) -1}, but was {timetravel}")
         # BEGIN SOLUTION
+        temp = self.root_versions[len(self.root_versions) - 1 - timetravel]
+        yield from self.iterate(temp)
+
         # END SOLUTION
+
+    def iterate(self, node):
+        if node:
+            yield from self.iterate(node.left)
+            yield(node.val)
+            yield from self.iterate(node.right)
 
     @staticmethod
     def stringify_subtree(root):
