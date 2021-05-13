@@ -1,24 +1,61 @@
 from unittest import TestCase
 import random
+import statistics
 
 def quicksort(lst,pivot_fn):
     qsort(lst,0,len(lst) - 1,pivot_fn)
 
 def qsort(lst,low,high,pivot_fn):
     ### BEGIN SOLUTION
+    if low < high:
+        p = pivot_fn(lst,low,high)
+        qsort(lst,low,p-1, pivot_fn)
+        qsort(lst,p+1,high, pivot_fn)
     ### END SOLUTION
 
 def pivot_first(lst,low,high):
     ### BEGIN SOLUTION
+    p2 = lst[low] #first element
+    lst[low], lst[high] = lst[high], lst[low] #put pivot at the end
+    i = low
+    for j in range(low,high):
+        if lst[j] < p2:
+            lst[i], lst[j] = lst[j], lst[i]
+            i = i + 1
+    lst[i], lst[high] = lst[high], lst[i] #swap pivot with i
+    return i
     ### END SOLUTION
 
 def pivot_random(lst,low,high):
     ### BEGIN SOLUTION
+    p1 = random.randint(low, high) #random index
+    p2 = lst[p1] #pivot is now a random element
+    lst[p1], lst[high] = lst[high], lst[p1] #put pivot at the end
+    i = low
+    for j in range(low,high):
+        if lst[j] < p2:
+            lst[i], lst[j] = lst[j], lst[i]
+            i = i + 1
+    lst[i], lst[high] = lst[high], lst[i] #swap pivot with i
+    return i
     ### END SOLUTION
 
 def pivot_median_of_three(lst,low,high):
     ### BEGIN SOLUTION
+    p1 = median(lst[low], lst[(low + high) // 2], lst[high]) #median of 3
+    p2 = lst[p1]
+    lst[p1], lst[high] = lst[high], lst[p1] #put pivot at the end
+    i = low
+    for j in range(low,high):
+        if lst[j] < p2:
+            lst[i], lst[j] = lst[j], lst[i]
+            i = i + 1
+    lst[i], lst[high] = lst[high], lst[i] #swap pivot with i
+    return i
     ### END SOLUTION
+
+def median(a, b, c):
+    return statistics.median([a, b, c])
 
 ################################################################################
 # TEST CASES
@@ -48,6 +85,7 @@ def test_lists_with_pfn(pfn):
         lst = randomize_list(lstsize)
         quicksort(lst, pfn)
         tc.assertEqual(lst,exp)
+    
 
 # 30 points
 def test_first():
